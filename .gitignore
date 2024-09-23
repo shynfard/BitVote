@@ -2,7 +2,7 @@
 *~
 
 # Databases
-btcd.db
+bitVote.db
 *-shm
 *-wal
 
@@ -49,7 +49,7 @@ btcutil/psbt/coverage.txt
 # Binaries produced by "make build"
 /addblock
 /btcctl
-/btcd
+/bitVote
 /findcheckpoint
 /gencerts
 .history

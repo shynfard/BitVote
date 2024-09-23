@@ -1,4 +1,4 @@
-package main
+package main1
 
 import (
 	"fmt"
@@ -52,7 +52,7 @@ func main() {
 
 	// groth16: Prove & Verify
 	proof, _ := groth16.Prove(ccs, pk, witness)
-
+	fmt.Println("proof", proof)
 	err := groth16.Verify(proof, vk, publicWitness)
 	if err != nil {
 		panic("invalid proof")
