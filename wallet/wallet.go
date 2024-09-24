@@ -1,69 +1,93 @@
 package wallet
 
 import (
-	"filippo.io/edwards25519"
+	"crypto/sha256"
+	"math/rand"
+	"strings"
+
+	"github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"github.com/wordgen/wordlists/names"
 )
 
 // One-time key pair
 type OneTimePair struct {
-	private *edwards25519.Scalar
-	public  *edwards25519.Point
+	privateKey *ecdsa.PrivateKey
 }
 
 type Wallet struct {
-	privateViewKey  *edwards25519.Scalar
-	privateSpendKey *edwards25519.Scalar
-	publicViewKey   *edwards25519.Point
-	publicSpendKey  *edwards25519.Point
+	privateViewKey  *ecdsa.PrivateKey
+	privateSpendKey *ecdsa.PrivateKey
 
-	// list used One-time key
+	names string
+
 	oneTimePairs []*OneTimePair
 }
 
 // Generate a new wallet
-func (w *Wallet) Generate() {
-	// generate private view key
-	privateViewKey, _ := generatePrivateKey()
-	w.privateViewKey = privateViewKey
-	w.publicViewKey = derivePublicKey(privateViewKey)
+func (w *Wallet) Generate() string {
 
-	// generate private spend key
-	privateSpendKey, _ := generatePrivateKey()
-	w.privateSpendKey = privateSpendKey
-	w.publicSpendKey = derivePublicKey(privateSpendKey)
+	s := ""
+	for i := 0; i < 20; i++ {
+		s += names.Mixed[rand.Intn(len(names.Mixed)-1)]
+		if i < 19 {
+			s += " "
+		}
+	}
+	w.Load(s)
+	return s
 }
 
 // load wallet
-func (w *Wallet) Load(keys []byte) {
-	w.privateViewKey = edwards25519.NewScalar()
-	w.privateViewKey.SetUniformBytes(keys[:64])
+func (w *Wallet) Load(names string) {
 
-	w.privateSpendKey = edwards25519.NewScalar()
-	w.privateSpendKey.SetUniformBytes(keys[64:])
+	w.names = names
+	// derive private key from names
+	x := strings.Split(names, " ")
 
-	w.publicSpendKey = derivePublicKey(w.privateSpendKey)
-	w.publicViewKey = derivePublicKey(w.privateViewKey)
-}
+	s1 := ""
+	for i := 0; i < 10; i++ {
+		s1 += x[i]
+	}
+	s2 := ""
+	for i := 0; i < 10; i++ {
+		s2 += x[i+5]
+	}
 
-// get public key
-func (w *Wallet) GetPublicKey() []byte {
-	return w.publicSpendKey.Bytes()
-}
+	seed1 := []byte(s1)
+	seed2 := []byte(s2)
+	hash1 := sha256.Sum256(seed1)
+	hash2 := sha256.Sum256(seed2)
+	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
+	rng2 := rand.New(rand.NewSource(int64(hash2[0])))
 
-// get public key
-func (w *Wallet) GetPrivateKey() []byte {
-	return w.privateSpendKey.Bytes()
+	privateKey, err := ecdsa.GenerateKey(rng1)
+	if err != nil {
+		return
+	}
+	w.privateViewKey = privateKey
+
+	privateKey, err = ecdsa.GenerateKey(rng2)
+	if err != nil {
+		return
+	}
+	w.privateSpendKey = privateKey
 }
 
 // generate one-time key pair
-func (w *Wallet) GenerateOneTimePair(rand []byte) (private *edwards25519.Scalar, public *edwards25519.Point) {
-	// generate private key
-	privateKey, _ := generateOneTimePrivateKey(w.privateSpendKey, rand)
-	// generate public key
-	publicKey := derivePublicKey(privateKey)
+func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *ecdsa.PrivateKey) {
 
+	h := sha256.New()
+	h.Write(w.privateSpendKey.Bytes())
+	h.Write(randInput)
+	privateKeyBytes := h.Sum(nil)
+	hash1 := sha256.Sum256(privateKeyBytes)
+	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
+
+	privateKey, err := ecdsa.GenerateKey(rng1)
+	if err != nil {
+		return
+	}
 	// append to list
-	w.oneTimePairs = append(w.oneTimePairs, &OneTimePair{private: privateKey, public: publicKey})
-
-	return privateKey, publicKey
+	w.oneTimePairs = append(w.oneTimePairs, &OneTimePair{privateKey: privateKey})
+	return privateKey
 }

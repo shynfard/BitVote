@@ -3,7 +3,7 @@ package election
 import (
 	"math/big"
 
-	"filippo.io/edwards25519"
+	"github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
 	paillier "github.com/roasbeef/go-go-gadget-paillier"
 	"github.com/shynfard/BitVote/wallet"
 )
@@ -19,8 +19,7 @@ type Vote struct {
 	encryptedVote [][]byte
 
 	wallet     *wallet.Wallet
-	publicKey  *edwards25519.Point
-	privateKey *edwards25519.Scalar
+	privateKey *ecdsa.PrivateKey
 
 	keyImage []byte
 
@@ -47,12 +46,12 @@ func (v *Vote) CreateVote(wallet wallet.Wallet, pollData []byte, vote []byte) {
 		panic(err)
 	}
 	v.poll = poll
-
 	v.vote = vote
 	v.rand = randomBigInt(v.poll.homomorphicPublicKey.N)
+
 	v.calculateEncryptedVote()
 
-	v.privateKey, v.publicKey = wallet.GenerateOneTimePair(v.rand.Bytes())
+	v.privateKey = wallet.GenerateOneTimePair(v.rand.Bytes())
 
 	v.calculateAuthProof()
 
@@ -77,20 +76,6 @@ func (v *Vote) calculateAuthProof() {
 }
 
 func (v *Vote) calculateAuthzProof() {
-	// // c = H(pollID, publicKey, participants)
-	// // z = privateKey + c * publicKey
-	// h := sha256.New()
-	// h.Write(v.poll.pollID)
-	// h.Write(v.publicKey.Bytes())
-	// for _, participant := range v.poll.participants {
-	// 	h.Write(participant)
-	// }
-	// c := new(big.Int).SetBytes(h.Sum(nil))
-
-	// z := new(big.Int).Mul(c, v.publicKey)
-	// z.Add(z, v.privateKey)
-
-	// v.authzProof = &NIZKProof{c, z}
 }
 
 func (v *Vote) calculateKeyImage() {
