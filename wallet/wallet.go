@@ -1,22 +1,25 @@
 package wallet
 
 import (
-	"crypto/sha256"
+	"fmt"
 	"math/rand"
 	"strings"
 
-	"github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"golang.org/x/crypto/sha3"
+
+	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	"github.com/consensys/gnark-crypto/hash"
 	"github.com/wordgen/wordlists/names"
 )
 
 // One-time key pair
 type OneTimePair struct {
-	privateKey *ecdsa.PrivateKey
+	privateKey *eddsa.PrivateKey
 }
 
 type Wallet struct {
-	privateViewKey  *ecdsa.PrivateKey
-	privateSpendKey *ecdsa.PrivateKey
+	privateViewKey  *eddsa.PrivateKey
+	privateSpendKey *eddsa.PrivateKey
 
 	names string
 
@@ -55,18 +58,18 @@ func (w *Wallet) Load(names string) {
 
 	seed1 := []byte(s1)
 	seed2 := []byte(s2)
-	hash1 := sha256.Sum256(seed1)
-	hash2 := sha256.Sum256(seed2)
+	hash1 := sha3.Sum256(seed1)
+	hash2 := sha3.Sum256(seed2)
 	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
 	rng2 := rand.New(rand.NewSource(int64(hash2[0])))
 
-	privateKey, err := ecdsa.GenerateKey(rng1)
+	privateKey, err := eddsa.GenerateKey(rng1)
 	if err != nil {
 		return
 	}
 	w.privateViewKey = privateKey
 
-	privateKey, err = ecdsa.GenerateKey(rng2)
+	privateKey, err = eddsa.GenerateKey(rng2)
 	if err != nil {
 		return
 	}
@@ -74,20 +77,31 @@ func (w *Wallet) Load(names string) {
 }
 
 // generate one-time key pair
-func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *ecdsa.PrivateKey) {
+func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *eddsa.PrivateKey) {
 
-	h := sha256.New()
+	// Create a new SHA3-256 hasher
+	h := sha3.New256()
 	h.Write(w.privateSpendKey.Bytes())
 	h.Write(randInput)
 	privateKeyBytes := h.Sum(nil)
-	hash1 := sha256.Sum256(privateKeyBytes)
+	hash1 := sha3.Sum256(privateKeyBytes)
 	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
 
-	privateKey, err := ecdsa.GenerateKey(rng1)
+	privateKey, err := eddsa.GenerateKey(rng1)
 	if err != nil {
 		return
 	}
 	// append to list
 	w.oneTimePairs = append(w.oneTimePairs, &OneTimePair{privateKey: privateKey})
 	return privateKey
+}
+
+func (w *Wallet) GetPublicKey() *eddsa.PublicKey {
+	return &w.privateViewKey.PublicKey
+}
+
+func (w *Wallet) Sign(message []byte) ([]byte, error) {
+	fmt.Println("Signing message:", message)
+	hFunc := hash.MIMC_BN254.New()
+	return w.privateViewKey.Sign(message, hFunc)
 }

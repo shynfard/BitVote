@@ -2,19 +2,36 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
+	"io"
+	"math/big"
 	"os"
 
 	"github.com/consensys/gnark-crypto/ecc"
-	"github.com/consensys/gnark/backend"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
+	bn254T "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards"
+	bn254Teddsa "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/algebra/selector"
+	"github.com/consensys/gnark/frontend/cs/r1cs"
+	"github.com/consensys/gnark/std/algebra/native/twistededwards"
+	"github.com/consensys/gnark/std/hash/mimc"
+	"github.com/consensys/gnark/std/signature/eddsa"
 	"github.com/shynfard/BitVote/wallet"
+	"golang.org/x/crypto/blake2b"
+)
+
+const (
+	sizeFr         = fr.Bytes
+	sizePublicKey  = sizeFr
+	sizeSignature  = 2 * sizeFr
+	sizePrivateKey = 2*sizeFr + 32
 )
 
 // Login or create new account
-func login() {
+func login() (*wallet.Wallet, error) {
 
 	wallet := wallet.Wallet{}
 
@@ -39,77 +56,195 @@ func login() {
 		n, err := file.Read(fileData)
 		if err != nil {
 			fmt.Println("Error reading wallet.txt")
-			return
+			return nil, err
 		}
 		names := string(fileData[:n])
 		wallet.Load(names)
 	}
 
+	return &wallet, nil
+
+}
+
+// PrivateKey private key of an eddsa instance
+type PrivateKey struct {
+	PublicKey bn254Teddsa.PublicKey // copy of the associated public key
+	scalar    [sizeFr]byte          // secret scalar, in big Endian
+	randSrc   [32]byte              // source
 }
 
 type Circuit struct {
-	Secret frontend.Variable   `gnark:",secret"` // the private input (secret)
-	List   []frontend.Variable // the public list
+	Random        frontend.Variable `gnark:",public"`
+	PublicKey     eddsa.PublicKey
+	ListPublicKey []eddsa.PublicKey `gnark:",public"`
+	Signature     eddsa.Signature   `gnark:",public"`
+}
+
+// GenerateKey generates a public and private key pair.
+func GenerateKey(data [32]byte) (*PrivateKey, error) {
+	c := bn254T.GetEdwardsCurve()
+
+	var pub bn254Teddsa.PublicKey
+	var priv PrivateKey
+	// hash(h) = private_key || random_source, on 32 bytes each
+	h := blake2b.Sum512(data[:])
+	for i := 0; i < 32; i++ {
+		priv.randSrc[i] = h[i+32]
+	}
+
+	// prune the key
+	// https://tools.ietf.org/html/rfc8032#section-5.1.5, key generation
+	h[0] &= 0xF8
+	h[31] &= 0x7F
+	h[31] |= 0x40
+
+	// reverse first bytes because setBytes interpret stream as big endian
+	// but in eddsa specs s is the first 32 bytes in little endian
+	for i, j := 0, sizeFr-1; i < sizeFr; i, j = i+1, j-1 {
+		priv.scalar[i] = h[j]
+	}
+
+	var bScalar big.Int
+	bScalar.SetBytes(priv.scalar[:])
+	pub.A.ScalarMultiplication(&c.Base, &bScalar)
+
+	priv.PublicKey = pub
+
+	return &priv, nil
 }
 
 func (circuit *Circuit) Define(api frontend.API) error {
-	// Assume list contains 4 elements for simplicity, but it can be extended
-	isMember := selector.IsInSlice(api, circuit.Secret, circuit.List)
 
-	// Assert that isMember == 1 (i.e., the secret is in the list)
-	api.AssertIsEqual(isMember, 1)
+	curve, err := twistededwards.NewEdCurve(api, 1)
+	if err != nil {
+		return err
+	}
 
+	hash, err := mimc.NewMiMC(api)
+	if err != nil {
+		return err
+	}
+
+	eddsa.Verify(curve, circuit.Signature, circuit.Random, circuit.PublicKey, &hash)
+
+	temp := frontend.Variable(0)
+	for i := 0; i < len(circuit.ListPublicKey); i++ {
+		temp = api.Add(temp, api.Select(
+			api.And(
+				api.IsZero(api.Cmp(circuit.ListPublicKey[i].A.X, circuit.PublicKey.A.X)),
+				api.IsZero(api.Cmp(circuit.ListPublicKey[i].A.Y, circuit.PublicKey.A.Y)),
+			), frontend.Variable(1), frontend.Variable(0)))
+	}
+	api.AssertIsEqual(temp, frontend.Variable(1))
 	return nil
 }
 
 func main() {
-	// login()
+	wallet, _ := login()
 
-	var circuit Circuit
-
-	// Define the list of public inputs (public list)
-	circuit.List = make([]frontend.Variable, 4)
-	circuit.List[0] = 2
-	circuit.List[1] = 3
-	circuit.List[2] = 5
-	circuit.List[3] = 7
+	circuit := Circuit{
+		ListPublicKey: make([]eddsa.PublicKey, 3),
+	}
 
 	// Compile the circuit
-	r1cs, err := frontend.Compile(ecc.BLS12_377.BaseField(), backend.GROTH16, &circuit)
+	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &circuit)
 	if err != nil {
 		fmt.Println("Circuit compilation error:", err)
 		return
 	}
 
-	fmt.Println("Circuit compiled successfully")
+	fmt.Println("Circuit compiled successfully", ccs)
 
 	// Create the Prover and Verifier keys, then generate the proof and verify
 
 	// Setup the proving and verifying keys (trusted setup)
-	pk, vk, err := groth16.Setup(r1cs)
+	pk, vk, err := groth16.Setup(ccs)
 	if err != nil {
 		fmt.Println("Setup error:", err)
 		return
 	}
+	fmt.Println("Setup successful")
 
-	// Witness: set the secret to a value that is in the public list (e.g., 3)
-	var witness Circuit
-	witness.Secret = 3
+	// witness definition
+	msg := []byte{0xde, 0xad, 0xf0, 0x0d}
+
+	signature, err := wallet.Sign(msg)
+	if err != nil {
+		fmt.Println("Error signing message:", err)
+		return
+	}
+
+	// declare the witness
+	var assignment Circuit
+
+	// assign message value
+	assignment.Random = msg
+
+	// assign public key values
+	assignment.PublicKey.Assign(1, wallet.GetPublicKey().Bytes()[:32])
+
+	// assign signature values
+	assignment.Signature.Assign(1, signature)
+
+	var publicKey1 eddsa.PublicKey
+	s1 := make([]byte, 32)
+	rand.Read(s1)
+	publicKey1.Assign(1, s1)
+	var publicKey2 eddsa.PublicKey
+	s2 := make([]byte, 32)
+	rand.Read(s2)
+	publicKey2.Assign(1, s2)
+	var publicKey3 eddsa.PublicKey
+	s3 := make([]byte, 32)
+	rand.Read(s3)
+	publicKey3.Assign(1, s3)
+
+	assignment.ListPublicKey = []eddsa.PublicKey{publicKey1, publicKey2, assignment.PublicKey}
+	fmt.Println(assignment)
+
+	witness1, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
+	publicWitness, _ := witness1.Public()
+	m, _ := publicWitness.MarshalBinary()
+	fmt.Println("Witness:", string(m))
 
 	// Generate a proof
-	proof, err := groth16.Prove(r1cs, pk, &witness)
+	proof, err := groth16.Prove(ccs, pk, witness1)
 	if err != nil {
 		fmt.Println("Proof generation error:", err)
 		return
 	}
 
-	// Create a public input (the public list)
-	publicWitness := Circuit{
-		List: []frontend.Variable{2, 3, 5, 7}, // public list
+	var proofBuf bytes.Buffer
+	var proofWriter io.Writer = &proofBuf
+	proof.WriteTo(proofWriter)
+
+	var vkBuf bytes.Buffer
+	var vkWriter io.Writer = &vkBuf
+	vk.WriteTo(vkWriter)
+
+	publicWitnessBuff, err := publicWitness.MarshalBinary()
+	if err != nil {
+		fmt.Println("Marshalling error:", err)
+		return
 	}
 
+	// // ------------------------------
+	// // ------------------------------
+	// // ------------------------------
+	// // ------------------------------
+	// // ------------------------------
+
+	newProof := groth16.NewProof(ecc.BN254)
+	newProof.ReadFrom(&proofBuf)
+
+	newVk := groth16.NewVerifyingKey(ecc.BN254)
+	newVk.ReadFrom(&vkBuf)
+
+	newPublicWitness, _ := witness.New(ecc.BN254.ScalarField()) //
+	newPublicWitness.UnmarshalBinary(publicWitnessBuff)
+
 	// Verify the proof
-	err = groth16.Verify(proof, vk, &publicWitness)
+	err = groth16.Verify(newProof, newVk, publicWitness)
 	if err != nil {
 		fmt.Println("Proof verification failed:", err)
 	} else {
