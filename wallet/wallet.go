@@ -7,7 +7,6 @@ import (
 	"golang.org/x/crypto/sha3"
 
 	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
-
 	"github.com/consensys/gnark-crypto/hash"
 
 	"github.com/wordgen/wordlists/names"
@@ -105,6 +104,7 @@ func (w *Wallet) GetPrivateKey() *eddsa.PrivateKey {
 }
 
 func (w *Wallet) Sign(message []byte) ([]byte, error) {
-	hFunc := hash.MIMC_BLS12_377.New()
+	hFunc := hash.MIMC_BN254.New()
+	// hFunc := sha3.New256()
 	return w.privateViewKey.Sign(message, hFunc)
 }

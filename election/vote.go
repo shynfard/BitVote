@@ -10,16 +10,17 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/consensys/gnark-crypto/ecc"
-	gecdsa "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/r1cs"
-	"github.com/consensys/gnark/std/algebra/native/twistededwards"
-	"github.com/consensys/gnark/std/hash/mimc"
-	"github.com/consensys/gnark/std/signature/eddsa"
 	paillier "github.com/roasbeef/go-go-gadget-paillier"
 	"github.com/shynfard/BitVote/wallet"
+
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/std/algebra/native/twistededwards"
+	"github.com/consensys/gnark/std/hash/mimc"
+	sigeddsa "github.com/consensys/gnark/std/signature/eddsa"
 )
 
 type NIZKProof struct {
@@ -33,7 +34,7 @@ type Vote struct {
 	encryptedVote [][]byte
 
 	wallet     *wallet.Wallet
-	privateKey *gecdsa.PrivateKey
+	privateKey *eddsa.PrivateKey
 
 	publicWitnessBuff []byte
 	vkBuf             []byte
@@ -84,10 +85,10 @@ func (v *Vote) calculateEncryptedVote() {
 }
 
 type Circuit struct {
-	Random        frontend.Variable `gnark:",public"`
+	Random        []byte `gnark:",public"`
 	PublicKey     eddsa.PublicKey
-	ListPublicKey []eddsa.PublicKey `gnark:",public"`
-	Signature     eddsa.Signature   `gnark:",public"`
+	ListPublicKey []eddsa.PublicKey  `gnark:",public"`
+	Signature     sigeddsa.Signature `gnark:",public"`
 }
 
 func (circuit *Circuit) Define(api frontend.API) error {
@@ -97,12 +98,19 @@ func (circuit *Circuit) Define(api frontend.API) error {
 		return err
 	}
 
-	hash, err := mimc.NewMiMC(api)
+	mimc, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
 	}
 
-	eddsa.Verify(curve, circuit.Signature, circuit.Random, circuit.PublicKey, &hash)
+	pubKey := sigeddsa.PublicKey{
+		A: twistededwards.Point{
+			X: circuit.PublicKey.A.X,
+			Y: circuit.PublicKey.A.Y,
+		},
+	}
+	// verify the signature in the cs
+	sigeddsa.Verify(curve, circuit.Signature, circuit.Random, pubKey, &mimc)
 
 	temp := frontend.Variable(0)
 	for i := 0; i < len(circuit.ListPublicKey); i++ {
@@ -136,14 +144,12 @@ func (v *Vote) calculateProof() {
 	}
 
 	// witness definition
-	msg := v.privateKey.PublicKey.Bytes()
-	fmt.Println("HERE")
+	msg := v.privateKey.PublicKey.Bytes()[:31]
 	signature, err := v.wallet.Sign(msg)
 	if err != nil {
 		fmt.Println("Error signing message -- :", err)
 		panic(err)
 	}
-	fmt.Println("HERE 11")
 
 	// declare the witness
 	assignment := Circuit{
@@ -154,15 +160,17 @@ func (v *Vote) calculateProof() {
 	assignment.Random = msg
 
 	// assign public key values
-	assignment.PublicKey.Assign(1, v.wallet.GetPublicKey().Bytes()[:32])
+	assignment.PublicKey.SetBytes(v.wallet.GetPublicKey().Bytes()[:32])
 
 	// assign signature values
-	assignment.Signature.Assign(1, signature)
+	sig := sigeddsa.Signature{}
+	sig.Assign(1, signature)
+	assignment.Signature = sig
 
-	fmt.Println("HERE 22", v.poll.participants)
+	fmt.Println("HERE 22", assignment)
 
 	for i, participant := range v.poll.participants {
-		assignment.ListPublicKey[i].Assign(1, participant)
+		assignment.ListPublicKey[i].SetBytes(participant)
 	}
 
 	witness1, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
