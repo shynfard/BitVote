@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -51,7 +52,8 @@ type Vote struct {
 // - create proof of authorization (that master public key is in participants list)
 // - calculate key image
 // - sign vote with private spend key
-func (v *Vote) CreateVote(wallet wallet.Wallet, pollData []byte, vote []byte) {
+func CreateVote(wallet wallet.Wallet, pollData []byte, vote []byte) *Vote {
+	v := &Vote{}
 	v.wallet = &wallet
 	poll, err := LoadPoll(pollData)
 	if err != nil {
@@ -66,6 +68,8 @@ func (v *Vote) CreateVote(wallet wallet.Wallet, pollData []byte, vote []byte) {
 	v.privateKey = wallet.GenerateOneTimePair(v.rand.Bytes())
 
 	v.calculateProof()
+
+	return v
 
 }
 
@@ -114,7 +118,7 @@ func (circuit *Circuit) Define(api frontend.API) error {
 
 func (v *Vote) calculateProof() {
 	circuit := Circuit{
-		ListPublicKey: make([]eddsa.PublicKey, 3),
+		ListPublicKey: make([]eddsa.PublicKey, len(v.poll.participants)),
 	}
 
 	// Compile the circuit
@@ -124,29 +128,27 @@ func (v *Vote) calculateProof() {
 		return
 	}
 
-	fmt.Println("Circuit compiled successfully", ccs)
-
-	// Create the Prover and Verifier keys, then generate the proof and verify
-
 	// Setup the proving and verifying keys (trusted setup)
 	pk, vk, err := groth16.Setup(ccs)
 	if err != nil {
 		fmt.Println("Setup error:", err)
 		return
 	}
-	fmt.Println("Setup successful")
 
 	// witness definition
 	msg := v.privateKey.PublicKey.Bytes()
-
+	fmt.Println("HERE")
 	signature, err := v.wallet.Sign(msg)
 	if err != nil {
-		fmt.Println("Error signing message:", err)
-		return
+		fmt.Println("Error signing message -- :", err)
+		panic(err)
 	}
+	fmt.Println("HERE 11")
 
 	// declare the witness
-	var assignment Circuit
+	assignment := Circuit{
+		ListPublicKey: make([]eddsa.PublicKey, len(v.poll.participants)),
+	}
 
 	// assign message value
 	assignment.Random = msg
@@ -157,21 +159,11 @@ func (v *Vote) calculateProof() {
 	// assign signature values
 	assignment.Signature.Assign(1, signature)
 
-	var publicKey1 eddsa.PublicKey
-	s1 := make([]byte, 32)
-	rand.Read(s1)
-	publicKey1.Assign(1, s1)
-	var publicKey2 eddsa.PublicKey
-	s2 := make([]byte, 32)
-	rand.Read(s2)
-	publicKey2.Assign(1, s2)
-	var publicKey3 eddsa.PublicKey
-	s3 := make([]byte, 32)
-	rand.Read(s3)
-	publicKey3.Assign(1, s3)
+	fmt.Println("HERE 22", v.poll.participants)
 
-	assignment.ListPublicKey = []eddsa.PublicKey{publicKey1, publicKey2, assignment.PublicKey}
-	fmt.Println(assignment)
+	for i, participant := range v.poll.participants {
+		assignment.ListPublicKey[i].Assign(1, participant)
+	}
 
 	witness1, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
 	publicWitness, _ := witness1.Public()
@@ -213,20 +205,29 @@ func (v *Vote) GetHash() []byte {
 	}
 	h.Write(v.privateKey.PublicKey.Bytes())
 	h.Write(v.publicWitnessBuff)
+	h.Write(v.vkBuf)
+	h.Write(v.proofBuf)
 	h.Write(v.signature)
 	h.Write(v.rand.Bytes())
 	return h.Sum(nil)
 }
 
 func (v *Vote) GetVote() []byte {
-	return v.vote
-}
+	data := map[string]interface{}{
+		"pollId":            v.poll.pollID,
+		"encryptedVote":     v.encryptedVote,
+		"publicWitnessBuff": v.publicWitnessBuff,
+		"vkBuf":             v.vkBuf,
+		"proofBuf":          v.proofBuf,
+		"singature":         v.signature,
+		"publicKey":         v.privateKey.PublicKey.Bytes(),
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
 
-func LoadVote(data []byte) *Vote {
-	// vote := new(Vote)
-	// vote.poll = new(Poll)
-	// vote.poll.LoadPoll(data)
-	return nil
+	return jsonData
 }
 
 func randomBigInt(max *big.Int) *big.Int {

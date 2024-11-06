@@ -1,87 +1,109 @@
 package wallet
 
 import (
-	"bytes"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/sha256"
-	"log"
+	"math/rand"
+	"strings"
 
-	"github.com/shynfard/BitVote/utils"
 	"golang.org/x/crypto/sha3"
+
+	gecdsa "github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"github.com/consensys/gnark-crypto/hash"
+
+	"github.com/wordgen/wordlists/names"
 )
 
-const version = byte(0x00)
-const addressChecksumLen = 4
+// One-time key pair
+type OneTimePair struct {
+	privateKey *gecdsa.PrivateKey
+}
 
-// Wallet stores private and public keys
 type Wallet struct {
-	PrivateKey ecdsa.PrivateKey
-	PublicKey  []byte
+	privateViewKey  *gecdsa.PrivateKey
+	privateSpendKey *gecdsa.PrivateKey
+
+	names string
+
+	oneTimePairs []*OneTimePair
 }
 
-// NewWallet creates and returns a Wallet
-func NewWallet() *Wallet {
-	private, public := newKeyPair()
-	wallet := Wallet{private, public}
+// Generate a new wallet
+func (w *Wallet) Generate() string {
 
-	return &wallet
-}
-
-// GetAddress returns wallet address
-func (w Wallet) GetAddress() []byte {
-	pubKeyHash := HashPubKey(w.PublicKey)
-
-	versionedPayload := append([]byte{version}, pubKeyHash...)
-	checksum := checksum(versionedPayload)
-
-	fullPayload := append(versionedPayload, checksum...)
-	address := utils.Base58Encode(fullPayload)
-
-	return address
-}
-
-// HashPubKey hashes public key
-func HashPubKey(pubKey []byte) []byte {
-	publicSHA256 := sha256.Sum256(pubKey)
-
-	sha3hasher := sha3.New256()
-	_, err := sha3hasher.Write(publicSHA256[:])
-	if err != nil {
-		log.Panic(err)
+	s := ""
+	for i := 0; i < 20; i++ {
+		s += names.Mixed[rand.Intn(len(names.Mixed)-1)]
+		if i < 19 {
+			s += " "
+		}
 	}
-	publicsha3256 := sha3hasher.Sum(nil)
-
-	return publicsha3256
+	w.Load(s)
+	return s
 }
 
-// ValidateAddress check if address if valid
-func ValidateAddress(address string) bool {
-	pubKeyHash := utils.Base58Decode([]byte(address))
-	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
-	version := pubKeyHash[0]
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
-	targetChecksum := checksum(append([]byte{version}, pubKeyHash...))
+// load wallet
+func (w *Wallet) Load(names string) {
 
-	return bytes.Compare(actualChecksum, targetChecksum) == 0
-}
+	w.names = names
+	// derive private key from names
+	x := strings.Split(names, " ")
 
-// Checksum generates a checksum for a public key
-func checksum(payload []byte) []byte {
-	firstSHA := sha256.Sum256(payload)
-	secondSHA := sha256.Sum256(firstSHA[:])
-
-	return secondSHA[:addressChecksumLen]
-}
-
-func newKeyPair() (ecdsa.PrivateKey, []byte) {
-	curve := elliptic.P256()
-	private, err := ecdsa.GenerateKey(curve, rand.Reader)
-	if err != nil {
-		log.Panic(err)
+	s1 := ""
+	for i := 0; i < 10; i++ {
+		s1 += x[i]
 	}
-	pubKey := append(private.PublicKey.X.Bytes(), private.PublicKey.Y.Bytes()...)
+	s2 := ""
+	for i := 0; i < 10; i++ {
+		s2 += x[i+5]
+	}
 
-	return *private, pubKey
+	seed1 := []byte(s1)
+	seed2 := []byte(s2)
+	hash1 := sha3.Sum256(seed1)
+	hash2 := sha3.Sum256(seed2)
+	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
+	rng2 := rand.New(rand.NewSource(int64(hash2[0])))
+
+	privateKey, err := gecdsa.GenerateKey(rng1)
+	if err != nil {
+		return
+	}
+	w.privateViewKey = privateKey
+
+	privateKey, err = gecdsa.GenerateKey(rng2)
+	if err != nil {
+		return
+	}
+	w.privateSpendKey = privateKey
+}
+
+// generate one-time key pair
+func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *gecdsa.PrivateKey) {
+
+	// Create a new SHA3-256 hasher
+	h := sha3.New256()
+	h.Write(w.privateSpendKey.Bytes())
+	h.Write(randInput)
+	privateKeyBytes := h.Sum(nil)
+	hash1 := sha3.Sum256(privateKeyBytes)
+	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
+
+	privateKey, err := gecdsa.GenerateKey(rng1)
+	if err != nil {
+		return
+	}
+	// append to list
+	w.oneTimePairs = append(w.oneTimePairs, &OneTimePair{privateKey: privateKey})
+	return privateKey
+}
+
+func (w *Wallet) GetPublicKey() *gecdsa.PublicKey {
+	return &w.privateViewKey.PublicKey
+}
+func (w *Wallet) GetPrivateKey() *gecdsa.PrivateKey {
+	return w.privateViewKey
+}
+
+func (w *Wallet) Sign(message []byte) ([]byte, error) {
+	hFunc := hash.MIMC_BLS12_377.New()
+	return w.privateViewKey.Sign(message, hFunc)
 }
