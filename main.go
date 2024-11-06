@@ -23,6 +23,12 @@ func main() {
 	// create a poll
 	poll := election.CreatePoll(w.GetPrivateKey().Bytes(), []byte("What is your favorite color?"), [][]byte{[]byte("Red"), []byte("Blue"), []byte("Green")}, 10, [][]byte{w.GetPublicKey().Bytes()})
 
+	res := election.VerifyPoll(poll)
+
+	if res != true {
+		fmt.Println("Poll verification failed")
+	}
+
 	pollByte := poll.GetPoll()
 
 	// create a vote

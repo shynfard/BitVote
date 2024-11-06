@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"math/rand"
 
-	"github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 
 	rrand "crypto/rand"
 	"crypto/sha256"
@@ -50,7 +50,7 @@ type PollPublic struct {
 // CreatePoll creates a new poll with the given parameters.
 func CreatePoll(creatorPrivateKey []byte, question []byte, options [][]byte, duration int, participants [][]byte) *Poll {
 	p := &Poll{}
-	priv := ecdsa.PrivateKey{}
+	priv := eddsa.PrivateKey{}
 	priv.SetBytes(creatorPrivateKey)
 	p.creatorPublicKey = priv.Public().Bytes()
 	p.question = question
@@ -221,7 +221,7 @@ func VerifyPoll(poll *Poll) bool {
 		return false
 	}
 	// verify signature
-	pubKey := ecdsa.PublicKey{}
+	pubKey := eddsa.PublicKey{}
 	pubKey.SetBytes(poll.creatorPublicKey)
 	ok, err := pubKey.Verify(poll.signature, poll.Hash(), sha256.New())
 	if !ok || err != nil {

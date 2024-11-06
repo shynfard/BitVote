@@ -6,7 +6,8 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	gecdsa "github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+
 	"github.com/consensys/gnark-crypto/hash"
 
 	"github.com/wordgen/wordlists/names"
@@ -14,12 +15,12 @@ import (
 
 // One-time key pair
 type OneTimePair struct {
-	privateKey *gecdsa.PrivateKey
+	privateKey *eddsa.PrivateKey
 }
 
 type Wallet struct {
-	privateViewKey  *gecdsa.PrivateKey
-	privateSpendKey *gecdsa.PrivateKey
+	privateViewKey  *eddsa.PrivateKey
+	privateSpendKey *eddsa.PrivateKey
 
 	names string
 
@@ -63,13 +64,13 @@ func (w *Wallet) Load(names string) {
 	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
 	rng2 := rand.New(rand.NewSource(int64(hash2[0])))
 
-	privateKey, err := gecdsa.GenerateKey(rng1)
+	privateKey, err := eddsa.GenerateKey(rng1)
 	if err != nil {
 		return
 	}
 	w.privateViewKey = privateKey
 
-	privateKey, err = gecdsa.GenerateKey(rng2)
+	privateKey, err = eddsa.GenerateKey(rng2)
 	if err != nil {
 		return
 	}
@@ -77,7 +78,7 @@ func (w *Wallet) Load(names string) {
 }
 
 // generate one-time key pair
-func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *gecdsa.PrivateKey) {
+func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *eddsa.PrivateKey) {
 
 	// Create a new SHA3-256 hasher
 	h := sha3.New256()
@@ -87,7 +88,7 @@ func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *gecdsa.PrivateKey) 
 	hash1 := sha3.Sum256(privateKeyBytes)
 	rng1 := rand.New(rand.NewSource(int64(hash1[0])))
 
-	privateKey, err := gecdsa.GenerateKey(rng1)
+	privateKey, err := eddsa.GenerateKey(rng1)
 	if err != nil {
 		return
 	}
@@ -96,10 +97,10 @@ func (w *Wallet) GenerateOneTimePair(randInput []byte) (key *gecdsa.PrivateKey) 
 	return privateKey
 }
 
-func (w *Wallet) GetPublicKey() *gecdsa.PublicKey {
+func (w *Wallet) GetPublicKey() *eddsa.PublicKey {
 	return &w.privateViewKey.PublicKey
 }
-func (w *Wallet) GetPrivateKey() *gecdsa.PrivateKey {
+func (w *Wallet) GetPrivateKey() *eddsa.PrivateKey {
 	return w.privateViewKey
 }
 
