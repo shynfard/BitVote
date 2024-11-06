@@ -1,4 +1,4 @@
-package election
+package t
 
 import (
 	"crypto/ed25519"

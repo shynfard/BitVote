@@ -1,9 +1,22 @@
 package election
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"log"
 	"math/big"
 
-	"github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"github.com/consensys/gnark-crypto/ecc"
+	gecdsa "github.com/consensys/gnark-crypto/ecc/bls12-377/ecdsa"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/frontend"
+	"github.com/consensys/gnark/frontend/cs/r1cs"
+	"github.com/consensys/gnark/std/algebra/native/twistededwards"
+	"github.com/consensys/gnark/std/hash/mimc"
+	"github.com/consensys/gnark/std/signature/eddsa"
 	paillier "github.com/roasbeef/go-go-gadget-paillier"
 	"github.com/shynfard/BitVote/wallet"
 )
@@ -19,12 +32,11 @@ type Vote struct {
 	encryptedVote [][]byte
 
 	wallet     *wallet.Wallet
-	privateKey *ecdsa.PrivateKey
+	privateKey *gecdsa.PrivateKey
 
-	keyImage []byte
-
-	authProof  *NIZKProof
-	authzProof *NIZKProof
+	publicWitnessBuff []byte
+	vkBuf             []byte
+	proofBuf          []byte
 
 	signature []byte
 
@@ -53,11 +65,7 @@ func (v *Vote) CreateVote(wallet wallet.Wallet, pollData []byte, vote []byte) {
 
 	v.privateKey = wallet.GenerateOneTimePair(v.rand.Bytes())
 
-	v.calculateAuthProof()
-
-	v.calculateAuthzProof()
-
-	v.calculateKeyImage()
+	v.calculateProof()
 
 }
 
@@ -71,35 +79,143 @@ func (v *Vote) calculateEncryptedVote() {
 	}
 }
 
-func (v *Vote) calculateAuthProof() {
-
+type Circuit struct {
+	Random        frontend.Variable `gnark:",public"`
+	PublicKey     eddsa.PublicKey
+	ListPublicKey []eddsa.PublicKey `gnark:",public"`
+	Signature     eddsa.Signature   `gnark:",public"`
 }
 
-func (v *Vote) calculateAuthzProof() {
+func (circuit *Circuit) Define(api frontend.API) error {
+
+	curve, err := twistededwards.NewEdCurve(api, 1)
+	if err != nil {
+		return err
+	}
+
+	hash, err := mimc.NewMiMC(api)
+	if err != nil {
+		return err
+	}
+
+	eddsa.Verify(curve, circuit.Signature, circuit.Random, circuit.PublicKey, &hash)
+
+	temp := frontend.Variable(0)
+	for i := 0; i < len(circuit.ListPublicKey); i++ {
+		temp = api.Add(temp, api.Select(
+			api.And(
+				api.IsZero(api.Cmp(circuit.ListPublicKey[i].A.X, circuit.PublicKey.A.X)),
+				api.IsZero(api.Cmp(circuit.ListPublicKey[i].A.Y, circuit.PublicKey.A.Y)),
+			), frontend.Variable(1), frontend.Variable(0)))
+	}
+	api.AssertIsEqual(temp, frontend.Variable(1))
+	return nil
 }
 
-func (v *Vote) calculateKeyImage() {
-	// // keyImage = H(publicKey, privateKey)
-	// h := sha256.New()
-	// h.Write(v.publicKey.Bytes())
-	// h.Write(v.privateKey.Bytes())
-	// v.keyImage = h.Sum(nil)
+func (v *Vote) calculateProof() {
+	circuit := Circuit{
+		ListPublicKey: make([]eddsa.PublicKey, 3),
+	}
+
+	// Compile the circuit
+	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &circuit)
+	if err != nil {
+		fmt.Println("Circuit compilation error:", err)
+		return
+	}
+
+	fmt.Println("Circuit compiled successfully", ccs)
+
+	// Create the Prover and Verifier keys, then generate the proof and verify
+
+	// Setup the proving and verifying keys (trusted setup)
+	pk, vk, err := groth16.Setup(ccs)
+	if err != nil {
+		fmt.Println("Setup error:", err)
+		return
+	}
+	fmt.Println("Setup successful")
+
+	// witness definition
+	msg := v.privateKey.PublicKey.Bytes()
+
+	signature, err := v.wallet.Sign(msg)
+	if err != nil {
+		fmt.Println("Error signing message:", err)
+		return
+	}
+
+	// declare the witness
+	var assignment Circuit
+
+	// assign message value
+	assignment.Random = msg
+
+	// assign public key values
+	assignment.PublicKey.Assign(1, v.wallet.GetPublicKey().Bytes()[:32])
+
+	// assign signature values
+	assignment.Signature.Assign(1, signature)
+
+	var publicKey1 eddsa.PublicKey
+	s1 := make([]byte, 32)
+	rand.Read(s1)
+	publicKey1.Assign(1, s1)
+	var publicKey2 eddsa.PublicKey
+	s2 := make([]byte, 32)
+	rand.Read(s2)
+	publicKey2.Assign(1, s2)
+	var publicKey3 eddsa.PublicKey
+	s3 := make([]byte, 32)
+	rand.Read(s3)
+	publicKey3.Assign(1, s3)
+
+	assignment.ListPublicKey = []eddsa.PublicKey{publicKey1, publicKey2, assignment.PublicKey}
+	fmt.Println(assignment)
+
+	witness1, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
+	publicWitness, _ := witness1.Public()
+	m, _ := publicWitness.MarshalBinary()
+	fmt.Println("Witness:", string(m))
+
+	// Generate a proof
+	proof, err := groth16.Prove(ccs, pk, witness1)
+	if err != nil {
+		fmt.Println("Proof generation error:", err)
+		return
+	}
+
+	var proofBuf bytes.Buffer
+	var proofWriter io.Writer = &proofBuf
+	proof.WriteTo(proofWriter)
+
+	var vkBuf bytes.Buffer
+	var vkWriter io.Writer = &vkBuf
+	vk.WriteTo(vkWriter)
+
+	publicWitnessBuff, err := publicWitness.MarshalBinary()
+	if err != nil {
+		fmt.Println("Marshalling error:", err)
+		return
+	}
+
+	v.publicWitnessBuff = publicWitnessBuff
+	v.vkBuf = vkBuf.Bytes()
+	v.proofBuf = proofBuf.Bytes()
+
 }
 
 func (v *Vote) GetHash() []byte {
-	// h := sha256.New()
-	// h.Write(v.poll.pollID)
-	// h.Write(v.vote)
-	// h.Write(v.encryptedVote)
-	// h.Write(v.publicKey.Bytes())
-	// h.Write(v.privateKey.Bytes())
-	// h.Write(v.keyImage)
-	// h.Write(v.authProof.c.Bytes())
-	// h.Write(v.authProof.z.Bytes())
-	// h.Write(v.authzProof.c.Bytes())
-	// h.Write(v.authzProof.z.Bytes())
-	// return h.Sum(nil)
-	return nil
+	h := sha256.New()
+	h.Write(v.poll.pollID)
+	for _, encVote := range v.encryptedVote {
+		h.Write(encVote)
+	}
+	h.Write(v.privateKey.PublicKey.Bytes())
+	h.Write(v.publicWitnessBuff)
+	h.Write(v.signature)
+	h.Write(v.rand.Bytes())
+	return h.Sum(nil)
 }
 
 func (v *Vote) GetVote() []byte {
@@ -110,6 +226,13 @@ func LoadVote(data []byte) *Vote {
 	// vote := new(Vote)
 	// vote.poll = new(Poll)
 	// vote.poll.LoadPoll(data)
-	// return vote
 	return nil
+}
+
+func randomBigInt(max *big.Int) *big.Int {
+	r, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		log.Fatalf("Failed to generate random number: %v", err)
+	}
+	return r
 }
