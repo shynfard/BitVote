@@ -1,0 +1,3 @@
+iteration,participants,polls,Poll Execution Time,Poll Memory Usage,Poll size of all Options,Poll Size of all Participants,Poll Size of poll,Mining Execution Time,Mining Memory Usage
+ 1, 3000, 1,18m43.373030833s,5949667248, 16.737708ms,990488
+1, 5000, 1, 34m53.026812s,43606370472,28.412584ms,1545528
