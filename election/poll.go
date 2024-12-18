@@ -30,6 +30,8 @@ type Poll struct {
 	signature             []byte
 	homomorphicPublicKey  *paillier.PublicKey
 	homomorphicPrivateKey *paillier.PrivateKey
+
+	votes []Vote
 }
 
 // Poll represents an election poll.
@@ -82,7 +84,7 @@ func CreatePoll(creatorPrivateKey []byte, question []byte, options [][]byte, dur
 func (p *Poll) calculateFee() {
 	questionSize := len(p.question)
 	participantsSize := len(p.participants)
-	p.fee = questionSize + participantsSize*256 + p.duration
+	p.fee = int((questionSize + participantsSize*256 + p.duration) / 1000000)
 }
 
 // calculatePollID calculates the ID for the poll.
@@ -229,4 +231,16 @@ func VerifyPoll(poll *Poll) bool {
 		return false
 	}
 	return true
+}
+
+func (p *Poll) CountVotes() []big.Int {
+	encryptedSum := make([]big.Int, len(p.options))
+	for _, vote := range p.votes {
+		for i, encVote := range vote.encryptedVote {
+			voteInt := new(big.Int).SetBytes(encVote)
+			encryptedSum[i].Mul(&encryptedSum[i], voteInt)
+			encryptedSum[i].Mod(&encryptedSum[i], p.homomorphicPublicKey.N)
+		}
+	}
+	return encryptedSum
 }

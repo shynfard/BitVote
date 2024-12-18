@@ -1,0 +1,915 @@
+iteration: 1  
+ participants 1 
+ polls 1 
+Poll creation Execution Time: 115.960375ms
+Poll creation Memory Usage: 1314784 bytes
+size of all Options: 3 
+Size of all Participants: 1 
+Size of poll: 3149  byte
+----------------------
+mining Execution Time: 291.042µs
+mining Memory Usage: 11640 bytes
+********************************
+iteration: 2  
+ participants 1 
+ polls 1 
+Poll creation Execution Time: 97.60425ms
+Poll creation Memory Usage: 18446744073709534904 bytes
+size of all Options: 4 
+Size of all Participants: 1 
+Size of poll: 3212  byte
+----------------------
+mining Execution Time: 246.25µs
+mining Memory Usage: 11784 bytes
+********************************
+iteration: 3  
+ participants 1 
+ polls 1 
+Poll creation Execution Time: 41.456042ms
+Poll creation Memory Usage: 1171520 bytes
+size of all Options: 2 
+Size of all Participants: 1 
+Size of poll: 3125  byte
+----------------------
+mining Execution Time: 241.666µs
+mining Memory Usage: 11640 bytes
+********************************
+iteration: 4  
+ participants 1 
+ polls 1 
+Poll creation Execution Time: 67.423333ms
+Poll creation Memory Usage: 18446744073708280696 bytes
+size of all Options: 2 
+Size of all Participants: 1 
+Size of poll: 3173  byte
+----------------------
+mining Execution Time: 249.042µs
+mining Memory Usage: 11640 bytes
+********************************
+iteration: 5  
+ participants 1 
+ polls 1 
+Poll creation Execution Time: 78.752792ms
+Poll creation Memory Usage: 63664 bytes
+size of all Options: 2 
+Size of all Participants: 1 
+Size of poll: 3138  byte
+----------------------
+mining Execution Time: 253.209µs
+mining Memory Usage: 11640 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 1 
+ polls 5 
+Poll creation Execution Time: 413.983791ms
+Poll creation Memory Usage: 939584 bytes
+size of all Options: 17 
+Size of all Participants: 5 
+Size of poll: 15939  byte
+----------------------
+mining Execution Time: 1.150208ms
+mining Memory Usage: 58472 bytes
+********************************
+iteration: 2  
+ participants 1 
+ polls 5 
+Poll creation Execution Time: 502.012625ms
+Poll creation Memory Usage: 18446744073709491968 bytes
+size of all Options: 14 
+Size of all Participants: 5 
+Size of poll: 15896  byte
+----------------------
+mining Execution Time: 1.132375ms
+mining Memory Usage: 58360 bytes
+********************************
+iteration: 3  
+ participants 1 
+ polls 5 
+Poll creation Execution Time: 314.980416ms
+Poll creation Memory Usage: 18446744073709126912 bytes
+size of all Options: 15 
+Size of all Participants: 5 
+Size of poll: 16019  byte
+----------------------
+mining Execution Time: 1.130791ms
+mining Memory Usage: 58600 bytes
+********************************
+iteration: 4  
+ participants 1 
+ polls 5 
+Poll creation Execution Time: 518.666459ms
+Poll creation Memory Usage: 527576 bytes
+size of all Options: 14 
+Size of all Participants: 5 
+Size of poll: 15773  byte
+----------------------
+mining Execution Time: 1.108334ms
+mining Memory Usage: 58360 bytes
+********************************
+iteration: 5  
+ participants 1 
+ polls 5 
+Poll creation Execution Time: 344.821875ms
+Poll creation Memory Usage: 2072440 bytes
+size of all Options: 13 
+Size of all Participants: 5 
+Size of poll: 15871  byte
+----------------------
+mining Execution Time: 1.130708ms
+mining Memory Usage: 58344 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 1 
+ polls 10 
+Poll creation Execution Time: 877.3035ms
+Poll creation Memory Usage: 18446744073708520928 bytes
+size of all Options: 30 
+Size of all Participants: 10 
+Size of poll: 32218  byte
+----------------------
+mining Execution Time: 2.237125ms
+mining Memory Usage: 117200 bytes
+********************************
+iteration: 2  
+ participants 1 
+ polls 10 
+Poll creation Execution Time: 968.492042ms
+Poll creation Memory Usage: 780264 bytes
+size of all Options: 27 
+Size of all Participants: 10 
+Size of poll: 31696  byte
+----------------------
+mining Execution Time: 2.197125ms
+mining Memory Usage: 116704 bytes
+********************************
+iteration: 3  
+ participants 1 
+ polls 10 
+Poll creation Execution Time: 801.085958ms
+Poll creation Memory Usage: 18446744073709466096 bytes
+size of all Options: 31 
+Size of all Participants: 10 
+Size of poll: 32283  byte
+----------------------
+mining Execution Time: 2.217334ms
+mining Memory Usage: 117456 bytes
+********************************
+iteration: 4  
+ participants 1 
+ polls 10 
+Poll creation Execution Time: 581.907792ms
+Poll creation Memory Usage: 18446744073708428784 bytes
+size of all Options: 26 
+Size of all Participants: 10 
+Size of poll: 31711  byte
+----------------------
+mining Execution Time: 2.183959ms
+mining Memory Usage: 116816 bytes
+********************************
+iteration: 5  
+ participants 1 
+ polls 10 
+Poll creation Execution Time: 806.296042ms
+Poll creation Memory Usage: 482632 bytes
+size of all Options: 31 
+Size of all Participants: 10 
+Size of poll: 32123  byte
+----------------------
+mining Execution Time: 2.245792ms
+mining Memory Usage: 117072 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 10 
+ polls 1 
+Poll creation Execution Time: 65.379333ms
+Poll creation Memory Usage: 18446744073708732984 bytes
+size of all Options: 2 
+Size of all Participants: 10 
+Size of poll: 3908  byte
+----------------------
+mining Execution Time: 258.416µs
+mining Memory Usage: 12664 bytes
+********************************
+iteration: 2  
+ participants 10 
+ polls 1 
+Poll creation Execution Time: 20.497042ms
+Poll creation Memory Usage: 517168 bytes
+size of all Options: 4 
+Size of all Participants: 10 
+Size of poll: 4099  byte
+----------------------
+mining Execution Time: 248.291µs
+mining Memory Usage: 12680 bytes
+********************************
+iteration: 3  
+ participants 10 
+ polls 1 
+Poll creation Execution Time: 88.558666ms
+Poll creation Memory Usage: 18446744073708938608 bytes
+size of all Options: 4 
+Size of all Participants: 10 
+Size of poll: 4022  byte
+----------------------
+mining Execution Time: 239.791µs
+mining Memory Usage: 12664 bytes
+********************************
+iteration: 4  
+ participants 10 
+ polls 1 
+Poll creation Execution Time: 49.703792ms
+Poll creation Memory Usage: 18446744073707741472 bytes
+size of all Options: 3 
+Size of all Participants: 10 
+Size of poll: 4084  byte
+----------------------
+mining Execution Time: 240.458µs
+mining Memory Usage: 12680 bytes
+********************************
+iteration: 5  
+ participants 10 
+ polls 1 
+Poll creation Execution Time: 30.163375ms
+Poll creation Memory Usage: 943576 bytes
+size of all Options: 2 
+Size of all Participants: 10 
+Size of poll: 3913  byte
+----------------------
+mining Execution Time: 236.959µs
+mining Memory Usage: 12664 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 10 
+ polls 5 
+Poll creation Execution Time: 381.80125ms
+Poll creation Memory Usage: 18446744073708697032 bytes
+size of all Options: 14 
+Size of all Participants: 50 
+Size of poll: 20112  byte
+----------------------
+mining Execution Time: 1.131459ms
+mining Memory Usage: 63336 bytes
+********************************
+iteration: 2  
+ participants 10 
+ polls 5 
+Poll creation Execution Time: 390.578666ms
+Poll creation Memory Usage: 1006136 bytes
+size of all Options: 12 
+Size of all Participants: 50 
+Size of poll: 19981  byte
+----------------------
+mining Execution Time: 1.124708ms
+mining Memory Usage: 63352 bytes
+********************************
+iteration: 3  
+ participants 10 
+ polls 5 
+Poll creation Execution Time: 411.728583ms
+Poll creation Memory Usage: 213064 bytes
+size of all Options: 14 
+Size of all Participants: 50 
+Size of poll: 19897  byte
+----------------------
+mining Execution Time: 1.158542ms
+mining Memory Usage: 63352 bytes
+********************************
+iteration: 4  
+ participants 10 
+ polls 5 
+Poll creation Execution Time: 454.873625ms
+Poll creation Memory Usage: 18446744073708635560 bytes
+size of all Options: 16 
+Size of all Participants: 50 
+Size of poll: 20130  byte
+----------------------
+mining Execution Time: 1.11625ms
+mining Memory Usage: 63352 bytes
+********************************
+iteration: 5  
+ participants 10 
+ polls 5 
+Poll creation Execution Time: 303.629375ms
+Poll creation Memory Usage: 354088 bytes
+size of all Options: 15 
+Size of all Participants: 50 
+Size of poll: 20313  byte
+----------------------
+mining Execution Time: 1.152875ms
+mining Memory Usage: 63384 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 10 
+ polls 10 
+Poll creation Execution Time: 677.663125ms
+Poll creation Memory Usage: 365040 bytes
+size of all Options: 28 
+Size of all Participants: 100 
+Size of poll: 39833  byte
+----------------------
+mining Execution Time: 2.214875ms
+mining Memory Usage: 126656 bytes
+********************************
+iteration: 2  
+ participants 10 
+ polls 10 
+Poll creation Execution Time: 688.306583ms
+Poll creation Memory Usage: 18446744073708834096 bytes
+size of all Options: 32 
+Size of all Participants: 100 
+Size of poll: 40162  byte
+----------------------
+mining Execution Time: 2.361042ms
+mining Memory Usage: 126672 bytes
+********************************
+iteration: 3  
+ participants 10 
+ polls 10 
+Poll creation Execution Time: 1.059656916s
+Poll creation Memory Usage: 18446744073709043672 bytes
+size of all Options: 34 
+Size of all Participants: 100 
+Size of poll: 40489  byte
+----------------------
+mining Execution Time: 2.3805ms
+mining Memory Usage: 126672 bytes
+********************************
+iteration: 4  
+ participants 10 
+ polls 10 
+Poll creation Execution Time: 956.981666ms
+Poll creation Memory Usage: 1399320 bytes
+size of all Options: 28 
+Size of all Participants: 100 
+Size of poll: 40091  byte
+----------------------
+mining Execution Time: 2.369167ms
+mining Memory Usage: 126672 bytes
+********************************
+iteration: 5  
+ participants 10 
+ polls 10 
+Poll creation Execution Time: 570.404209ms
+Poll creation Memory Usage: 622400 bytes
+size of all Options: 28 
+Size of all Participants: 100 
+Size of poll: 39821  byte
+----------------------
+mining Execution Time: 2.336333ms
+mining Memory Usage: 126672 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 100 
+ polls 1 
+Poll creation Execution Time: 56.194375ms
+Poll creation Memory Usage: 1638304 bytes
+size of all Options: 3 
+Size of all Participants: 100 
+Size of poll: 12197  byte
+----------------------
+mining Execution Time: 248.708µs
+mining Memory Usage: 20856 bytes
+********************************
+iteration: 2  
+ participants 100 
+ polls 1 
+Poll creation Execution Time: 203.47275ms
+Poll creation Memory Usage: 18446744073707237640 bytes
+size of all Options: 2 
+Size of all Participants: 100 
+Size of poll: 12107  byte
+----------------------
+mining Execution Time: 258.792µs
+mining Memory Usage: 20872 bytes
+********************************
+iteration: 3  
+ participants 100 
+ polls 1 
+Poll creation Execution Time: 45.534458ms
+Poll creation Memory Usage: 1724512 bytes
+size of all Options: 2 
+Size of all Participants: 100 
+Size of poll: 12143  byte
+----------------------
+mining Execution Time: 246.5µs
+mining Memory Usage: 20856 bytes
+********************************
+iteration: 4  
+ participants 100 
+ polls 1 
+Poll creation Execution Time: 19.941333ms
+Poll creation Memory Usage: 124976 bytes
+size of all Options: 2 
+Size of all Participants: 100 
+Size of poll: 12111  byte
+----------------------
+mining Execution Time: 255.75µs
+mining Memory Usage: 20856 bytes
+********************************
+iteration: 5  
+ participants 100 
+ polls 1 
+Poll creation Execution Time: 139.191708ms
+Poll creation Memory Usage: 908104 bytes
+size of all Options: 4 
+Size of all Participants: 100 
+Size of poll: 12261  byte
+----------------------
+mining Execution Time: 257.625µs
+mining Memory Usage: 20872 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 100 
+ polls 5 
+Poll creation Execution Time: 239.624791ms
+Poll creation Memory Usage: 724096 bytes
+size of all Options: 13 
+Size of all Participants: 500 
+Size of poll: 60851  byte
+----------------------
+mining Execution Time: 1.157792ms
+mining Memory Usage: 104312 bytes
+********************************
+iteration: 2  
+ participants 100 
+ polls 5 
+Poll creation Execution Time: 594.603791ms
+Poll creation Memory Usage: 18446744073709131992 bytes
+size of all Options: 17 
+Size of all Participants: 500 
+Size of poll: 61132  byte
+----------------------
+mining Execution Time: 1.210041ms
+mining Memory Usage: 104296 bytes
+********************************
+iteration: 3  
+ participants 100 
+ polls 5 
+Poll creation Execution Time: 345.236625ms
+Poll creation Memory Usage: 18446744073708927792 bytes
+size of all Options: 15 
+Size of all Participants: 500 
+Size of poll: 61089  byte
+----------------------
+mining Execution Time: 1.202208ms
+mining Memory Usage: 104296 bytes
+********************************
+iteration: 4  
+ participants 100 
+ polls 5 
+Poll creation Execution Time: 364.0305ms
+Poll creation Memory Usage: 751992 bytes
+size of all Options: 19 
+Size of all Participants: 500 
+Size of poll: 61181  byte
+----------------------
+mining Execution Time: 1.178042ms
+mining Memory Usage: 104280 bytes
+********************************
+iteration: 5  
+ participants 100 
+ polls 5 
+Poll creation Execution Time: 259.479875ms
+Poll creation Memory Usage: 18446744073708665640 bytes
+size of all Options: 13 
+Size of all Participants: 500 
+Size of poll: 60986  byte
+----------------------
+mining Execution Time: 1.270833ms
+mining Memory Usage: 104296 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 100 
+ polls 10 
+Poll creation Execution Time: 1.124915292s
+Poll creation Memory Usage: 18446744073708014952 bytes
+size of all Options: 31 
+Size of all Participants: 1000 
+Size of poll: 122083  byte
+----------------------
+mining Execution Time: 2.386791ms
+mining Memory Usage: 208608 bytes
+********************************
+iteration: 2  
+ participants 100 
+ polls 10 
+Poll creation Execution Time: 800.510541ms
+Poll creation Memory Usage: 377400 bytes
+size of all Options: 29 
+Size of all Participants: 1000 
+Size of poll: 121864  byte
+----------------------
+mining Execution Time: 2.37525ms
+mining Memory Usage: 208608 bytes
+********************************
+iteration: 3  
+ participants 100 
+ polls 10 
+Poll creation Execution Time: 493.627166ms
+Poll creation Memory Usage: 18446744073709122576 bytes
+size of all Options: 32 
+Size of all Participants: 1000 
+Size of poll: 122044  byte
+----------------------
+mining Execution Time: 2.423584ms
+mining Memory Usage: 208592 bytes
+********************************
+iteration: 4  
+ participants 100 
+ polls 10 
+Poll creation Execution Time: 641.894167ms
+Poll creation Memory Usage: 18446744073708312448 bytes
+size of all Options: 26 
+Size of all Participants: 1000 
+Size of poll: 122056  byte
+----------------------
+mining Execution Time: 2.385458ms
+mining Memory Usage: 208592 bytes
+********************************
+iteration: 5  
+ participants 100 
+ polls 10 
+Poll creation Execution Time: 786.56475ms
+Poll creation Memory Usage: 18446744073709459032 bytes
+size of all Options: 30 
+Size of all Participants: 1000 
+Size of poll: 122077  byte
+----------------------
+mining Execution Time: 2.419ms
+mining Memory Usage: 208592 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 1000 
+ polls 1 
+Poll creation Execution Time: 40.030875ms
+Poll creation Memory Usage: 18446744073708249592 bytes
+size of all Options: 4 
+Size of all Participants: 1000 
+Size of poll: 94149  byte
+----------------------
+mining Execution Time: 347.625µs
+mining Memory Usage: 106888 bytes
+********************************
+iteration: 2  
+ participants 1000 
+ polls 1 
+Poll creation Execution Time: 301.332542ms
+Poll creation Memory Usage: 18446744073709066376 bytes
+size of all Options: 4 
+Size of all Participants: 1000 
+Size of poll: 94197  byte
+----------------------
+mining Execution Time: 338.416µs
+mining Memory Usage: 106872 bytes
+********************************
+iteration: 3  
+ participants 1000 
+ polls 1 
+Poll creation Execution Time: 72.541958ms
+Poll creation Memory Usage: 2226768 bytes
+size of all Options: 3 
+Size of all Participants: 1000 
+Size of poll: 94034  byte
+----------------------
+mining Execution Time: 350.167µs
+mining Memory Usage: 106872 bytes
+********************************
+iteration: 4  
+ participants 1000 
+ polls 1 
+Poll creation Execution Time: 25.878125ms
+Poll creation Memory Usage: 18446744073707551760 bytes
+size of all Options: 3 
+Size of all Participants: 1000 
+Size of poll: 94122  byte
+----------------------
+mining Execution Time: 363.459µs
+mining Memory Usage: 106888 bytes
+********************************
+iteration: 5  
+ participants 1000 
+ polls 1 
+Poll creation Execution Time: 41.387917ms
+Poll creation Memory Usage: 18446744073708511864 bytes
+size of all Options: 3 
+Size of all Participants: 1000 
+Size of poll: 94166  byte
+----------------------
+mining Execution Time: 365.958µs
+mining Memory Usage: 106872 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 1000 
+ polls 5 
+Poll creation Execution Time: 266.771584ms
+Poll creation Memory Usage: 85144 bytes
+size of all Options: 15 
+Size of all Participants: 5000 
+Size of poll: 470438  byte
+----------------------
+mining Execution Time: 1.646417ms
+mining Memory Usage: 534376 bytes
+********************************
+iteration: 2  
+ participants 1000 
+ polls 5 
+Poll creation Execution Time: 528.997542ms
+Poll creation Memory Usage: 18446744073708240592 bytes
+size of all Options: 16 
+Size of all Participants: 5000 
+Size of poll: 470616  byte
+----------------------
+mining Execution Time: 3.715542ms
+mining Memory Usage: 534376 bytes
+********************************
+iteration: 3  
+ participants 1000 
+ polls 5 
+Poll creation Execution Time: 397.691667ms
+Poll creation Memory Usage: 18446744073708435368 bytes
+size of all Options: 13 
+Size of all Participants: 5000 
+Size of poll: 470614  byte
+----------------------
+mining Execution Time: 1.689375ms
+mining Memory Usage: 534376 bytes
+********************************
+iteration: 4  
+ participants 1000 
+ polls 5 
+Poll creation Execution Time: 545.896375ms
+Poll creation Memory Usage: 789968 bytes
+size of all Options: 17 
+Size of all Participants: 5000 
+Size of poll: 470834  byte
+----------------------
+mining Execution Time: 1.603458ms
+mining Memory Usage: 534392 bytes
+********************************
+iteration: 5  
+ participants 1000 
+ polls 5 
+Poll creation Execution Time: 762.032542ms
+Poll creation Memory Usage: 214744 bytes
+size of all Options: 16 
+Size of all Participants: 5000 
+Size of poll: 470629  byte
+----------------------
+mining Execution Time: 1.596916ms
+mining Memory Usage: 534392 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 1000 
+ polls 10 
+Poll creation Execution Time: 889.476291ms
+Poll creation Memory Usage: 77112 bytes
+size of all Options: 26 
+Size of all Participants: 10000 
+Size of poll: 940771  byte
+----------------------
+mining Execution Time: 3.099792ms
+mining Memory Usage: 1068752 bytes
+********************************
+iteration: 2  
+ participants 1000 
+ polls 10 
+Poll creation Execution Time: 909.35075ms
+Poll creation Memory Usage: 1825032 bytes
+size of all Options: 30 
+Size of all Participants: 10000 
+Size of poll: 941259  byte
+----------------------
+mining Execution Time: 3.292917ms
+mining Memory Usage: 1068736 bytes
+********************************
+iteration: 3  
+ participants 1000 
+ polls 10 
+Poll creation Execution Time: 851.629458ms
+Poll creation Memory Usage: 904824 bytes
+size of all Options: 28 
+Size of all Participants: 10000 
+Size of poll: 940928  byte
+----------------------
+mining Execution Time: 3.417792ms
+mining Memory Usage: 18446744073708368960 bytes
+********************************
+iteration: 4  
+ participants 1000 
+ polls 10 
+Poll creation Execution Time: 835.702ms
+Poll creation Memory Usage: 18446744073708173712 bytes
+size of all Options: 29 
+Size of all Participants: 10000 
+Size of poll: 940771  byte
+----------------------
+mining Execution Time: 3.610334ms
+mining Memory Usage: 18446744073708726432 bytes
+********************************
+iteration: 5  
+ participants 1000 
+ polls 10 
+Poll creation Execution Time: 715.350917ms
+Poll creation Memory Usage: 609168 bytes
+size of all Options: 33 
+Size of all Participants: 10000 
+Size of poll: 941234  byte
+----------------------
+mining Execution Time: 3.246792ms
+mining Memory Usage: 1068752 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 10000 
+ polls 1 
+Poll creation Execution Time: 37.341625ms
+Poll creation Memory Usage: 3578816 bytes
+size of all Options: 3 
+Size of all Participants: 10000 
+Size of poll: 913126  byte
+----------------------
+mining Execution Time: 1.3765ms
+mining Memory Usage: 18446744073708368608 bytes
+********************************
+iteration: 2  
+ participants 10000 
+ polls 1 
+Poll creation Execution Time: 28.845917ms
+Poll creation Memory Usage: 18446744073708512104 bytes
+size of all Options: 4 
+Size of all Participants: 10000 
+Size of poll: 913161  byte
+----------------------
+mining Execution Time: 1.274458ms
+mining Memory Usage: 926072 bytes
+********************************
+iteration: 3  
+ participants 10000 
+ polls 1 
+Poll creation Execution Time: 152.702792ms
+Poll creation Memory Usage: 18446744073706795712 bytes
+size of all Options: 4 
+Size of all Participants: 10000 
+Size of poll: 913177  byte
+----------------------
+mining Execution Time: 1.213917ms
+mining Memory Usage: 926072 bytes
+********************************
+iteration: 4  
+ participants 10000 
+ polls 1 
+Poll creation Execution Time: 92.84ms
+Poll creation Memory Usage: 18446744073707193096 bytes
+size of all Options: 4 
+Size of all Participants: 10000 
+Size of poll: 913113  byte
+----------------------
+mining Execution Time: 1.188041ms
+mining Memory Usage: 926848 bytes
+********************************
+iteration: 5  
+ participants 10000 
+ polls 1 
+Poll creation Execution Time: 219.276209ms
+Poll creation Memory Usage: 18446744073709093712 bytes
+size of all Options: 2 
+Size of all Participants: 10000 
+Size of poll: 913087  byte
+----------------------
+mining Execution Time: 1.212542ms
+mining Memory Usage: 926072 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 10000 
+ polls 5 
+Poll creation Execution Time: 535.996584ms
+Poll creation Memory Usage: 6202664 bytes
+size of all Options: 12 
+Size of all Participants: 50000 
+Size of poll: 4565528  byte
+----------------------
+mining Execution Time: 6.004666ms
+mining Memory Usage: 4630392 bytes
+********************************
+iteration: 2  
+ participants 10000 
+ polls 5 
+Poll creation Execution Time: 443.128458ms
+Poll creation Memory Usage: 3164720 bytes
+size of all Options: 13 
+Size of all Participants: 50000 
+Size of poll: 4565502  byte
+----------------------
+mining Execution Time: 5.900875ms
+mining Memory Usage: 4631136 bytes
+********************************
+iteration: 3  
+ participants 10000 
+ polls 5 
+Poll creation Execution Time: 457.344333ms
+Poll creation Memory Usage: 3249680 bytes
+size of all Options: 15 
+Size of all Participants: 50000 
+Size of poll: 4565517  byte
+----------------------
+mining Execution Time: 5.563875ms
+mining Memory Usage: 4630440 bytes
+********************************
+iteration: 4  
+ participants 10000 
+ polls 5 
+Poll creation Execution Time: 391.006167ms
+Poll creation Memory Usage: 5272304 bytes
+size of all Options: 16 
+Size of all Participants: 50000 
+Size of poll: 4565667  byte
+----------------------
+mining Execution Time: 6.849959ms
+mining Memory Usage: 18446744073707166688 bytes
+********************************
+iteration: 5  
+ participants 10000 
+ polls 5 
+Poll creation Execution Time: 405.153666ms
+Poll creation Memory Usage: 5220952 bytes
+size of all Options: 16 
+Size of all Participants: 50000 
+Size of poll: 4565660  byte
+----------------------
+mining Execution Time: 6.120667ms
+mining Memory Usage: 2221056 bytes
+********************************
+||||||||||||||||||||||||||||
+iteration: 1  
+ participants 10000 
+ polls 10 
+Poll creation Execution Time: 902.059708ms
+Poll creation Memory Usage: 9320896 bytes
+size of all Options: 32 
+Size of all Participants: 100000 
+Size of poll: 9131169  byte
+----------------------
+mining Execution Time: 11.91175ms
+mining Memory Usage: 658240 bytes
+********************************
+iteration: 2  
+ participants 10000 
+ polls 10 
+Poll creation Execution Time: 826.271167ms
+Poll creation Memory Usage: 10844008 bytes
+size of all Options: 23 
+Size of all Participants: 100000 
+Size of poll: 9130810  byte
+----------------------
+mining Execution Time: 12.194042ms
+mining Memory Usage: 18446744073704271952 bytes
+********************************
+iteration: 3  
+ participants 10000 
+ polls 10 
+Poll creation Execution Time: 829.745458ms
+Poll creation Memory Usage: 18446744073707123672 bytes
+size of all Options: 27 
+Size of all Participants: 100000 
+Size of poll: 9131099  byte
+----------------------
+mining Execution Time: 11.160875ms
+mining Memory Usage: 9262184 bytes
+********************************
+iteration: 4  
+ participants 10000 
+ polls 10 
+Poll creation Execution Time: 752.118708ms
+Poll creation Memory Usage: 18446744073706922120 bytes
+size of all Options: 27 
+Size of all Participants: 100000 
+Size of poll: 9130948  byte
+----------------------
+mining Execution Time: 11.382125ms
+mining Memory Usage: 9261312 bytes
+********************************
+iteration: 5  
+ participants 10000 
+ polls 10 
+Poll creation Execution Time: 888.05475ms
+Poll creation Memory Usage: 8007608 bytes
+size of all Options: 27 
+Size of all Participants: 100000 
+Size of poll: 9130883  byte
+----------------------
+mining Execution Time: 11.838541ms
+mining Memory Usage: 1297864 bytes
+********************************
+||||||||||||||||||||||||||||

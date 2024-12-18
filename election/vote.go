@@ -10,8 +10,9 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
+	bn254Teddsa "github.com/consensys/gnark-crypto/ecc/bn254/twistededwards/eddsa"
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/r1cs"
 	paillier "github.com/roasbeef/go-go-gadget-paillier"
@@ -20,7 +21,9 @@ import (
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/hash/mimc"
-	sigeddsa "github.com/consensys/gnark/std/signature/eddsa"
+
+	// sigeddsa "github.com/consensys/gnark/std/signature/eddsa"
+	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
 type NIZKProof struct {
@@ -34,7 +37,7 @@ type Vote struct {
 	encryptedVote [][]byte
 
 	wallet     *wallet.Wallet
-	privateKey *eddsa.PrivateKey
+	privateKey *bn254Teddsa.PrivateKey
 
 	publicWitnessBuff []byte
 	vkBuf             []byte
@@ -43,6 +46,18 @@ type Vote struct {
 	signature []byte
 
 	rand *big.Int
+
+	publicKey []byte
+}
+
+type VotePublic struct {
+	PollID            []byte   `json:"pollID"`
+	EncryptedVote     [][]byte `json:"encryptedVote"`
+	PublicWitnessBuff []byte   `json:"publicWitnessBuff"`
+	VkBuf             []byte   `json:"vkBuf"`
+	ProofBuf          []byte   `json:"proofBuf"`
+	Signature         []byte   `json:"signature"`
+	PublicKey         []byte   `json:"publicKey"`
 }
 
 // - set poll ID
@@ -67,8 +82,18 @@ func CreateVote(wallet wallet.Wallet, pollData []byte, vote []byte) *Vote {
 	v.calculateEncryptedVote()
 
 	v.privateKey = wallet.GenerateOneTimePair(v.rand.Bytes())
+	v.publicKey = v.privateKey.PublicKey.Bytes()
 
 	v.calculateProof()
+
+	msg := v.publicKey[:31]
+	// msg := []byte{0xde, 0xad, 0xf0, 0x0d}
+
+	signature, err := v.wallet.Sign(msg)
+	if err != nil {
+		panic(err)
+	}
+	v.signature = signature
 
 	return v
 
@@ -85,10 +110,10 @@ func (v *Vote) calculateEncryptedVote() {
 }
 
 type Circuit struct {
-	Random        []byte `gnark:",public"`
+	Random        frontend.Variable `gnark:",public"`
 	PublicKey     eddsa.PublicKey
-	ListPublicKey []eddsa.PublicKey  `gnark:",public"`
-	Signature     sigeddsa.Signature `gnark:",public"`
+	ListPublicKey []eddsa.PublicKey `gnark:",public"`
+	Signature     eddsa.Signature   `gnark:",public"`
 }
 
 func (circuit *Circuit) Define(api frontend.API) error {
@@ -98,19 +123,12 @@ func (circuit *Circuit) Define(api frontend.API) error {
 		return err
 	}
 
-	mimc, err := mimc.NewMiMC(api)
+	hash, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
 	}
 
-	pubKey := sigeddsa.PublicKey{
-		A: twistededwards.Point{
-			X: circuit.PublicKey.A.X,
-			Y: circuit.PublicKey.A.Y,
-		},
-	}
-	// verify the signature in the cs
-	sigeddsa.Verify(curve, circuit.Signature, circuit.Random, pubKey, &mimc)
+	eddsa.Verify(curve, circuit.Signature, circuit.Random, circuit.PublicKey, &hash)
 
 	temp := frontend.Variable(0)
 	for i := 0; i < len(circuit.ListPublicKey); i++ {
@@ -132,56 +150,49 @@ func (v *Vote) calculateProof() {
 	// Compile the circuit
 	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &circuit)
 	if err != nil {
-		fmt.Println("Circuit compilation error:", err)
 		return
 	}
 
 	// Setup the proving and verifying keys (trusted setup)
 	pk, vk, err := groth16.Setup(ccs)
 	if err != nil {
-		fmt.Println("Setup error:", err)
 		return
 	}
 
 	// witness definition
 	msg := v.privateKey.PublicKey.Bytes()[:31]
+	// msg := []byte{0xde, 0xad, 0xf0, 0x0d}
+
 	signature, err := v.wallet.Sign(msg)
 	if err != nil {
-		fmt.Println("Error signing message -- :", err)
 		panic(err)
 	}
 
 	// declare the witness
-	assignment := Circuit{
-		ListPublicKey: make([]eddsa.PublicKey, len(v.poll.participants)),
-	}
+	assignment := Circuit{}
 
 	// assign message value
 	assignment.Random = msg
 
 	// assign public key values
-	assignment.PublicKey.SetBytes(v.wallet.GetPublicKey().Bytes()[:32])
+	assignment.PublicKey.Assign(1, v.wallet.GetPublicKey().Bytes()[:32])
 
 	// assign signature values
-	sig := sigeddsa.Signature{}
-	sig.Assign(1, signature)
-	assignment.Signature = sig
+	assignment.Signature.Assign(1, signature)
 
-	fmt.Println("HERE 22", assignment)
-
+	ListPublicKey := make([]eddsa.PublicKey, len(v.poll.participants))
 	for i, participant := range v.poll.participants {
-		assignment.ListPublicKey[i].SetBytes(participant)
+		ListPublicKey[i].Assign(1, participant)
 	}
+	assignment.ListPublicKey = ListPublicKey
 
 	witness1, _ := frontend.NewWitness(&assignment, ecc.BN254.ScalarField())
 	publicWitness, _ := witness1.Public()
-	m, _ := publicWitness.MarshalBinary()
-	fmt.Println("Witness:", string(m))
+	// m, _ := publicWitness.MarshalBinary()
 
 	// Generate a proof
 	proof, err := groth16.Prove(ccs, pk, witness1)
 	if err != nil {
-		fmt.Println("Proof generation error:", err)
 		return
 	}
 
@@ -195,7 +206,6 @@ func (v *Vote) calculateProof() {
 
 	publicWitnessBuff, err := publicWitness.MarshalBinary()
 	if err != nil {
-		fmt.Println("Marshalling error:", err)
 		return
 	}
 
@@ -211,11 +221,10 @@ func (v *Vote) GetHash() []byte {
 	for _, encVote := range v.encryptedVote {
 		h.Write(encVote)
 	}
-	h.Write(v.privateKey.PublicKey.Bytes())
+	h.Write(v.publicKey)
 	h.Write(v.publicWitnessBuff)
 	h.Write(v.vkBuf)
 	h.Write(v.proofBuf)
-	h.Write(v.signature)
 	h.Write(v.rand.Bytes())
 	return h.Sum(nil)
 }
@@ -228,7 +237,7 @@ func (v *Vote) GetVote() []byte {
 		"vkBuf":             v.vkBuf,
 		"proofBuf":          v.proofBuf,
 		"singature":         v.signature,
-		"publicKey":         v.privateKey.PublicKey.Bytes(),
+		"publicKey":         v.publicKey,
 	}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -237,6 +246,23 @@ func (v *Vote) GetVote() []byte {
 
 	return jsonData
 }
+func LoadVote(data []byte, p Poll) (*Vote, error) {
+	var v VotePublic
+	err := json.Unmarshal(data, &v)
+
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling PollPublic: %w", err)
+	}
+	vote := Vote{
+		publicWitnessBuff: v.PublicWitnessBuff,
+		vkBuf:             v.VkBuf,
+		proofBuf:          v.ProofBuf,
+		signature:         v.Signature,
+		publicKey:         v.PublicKey,
+		poll:              &p,
+	}
+	return &vote, nil
+}
 
 func randomBigInt(max *big.Int) *big.Int {
 	r, err := rand.Int(rand.Reader, max)
@@ -244,4 +270,21 @@ func randomBigInt(max *big.Int) *big.Int {
 		log.Fatalf("Failed to generate random number: %v", err)
 	}
 	return r
+}
+
+func (v *Vote) VerifyVote() bool {
+	newProof := groth16.NewProof(ecc.BN254)
+	newProof.ReadFrom(bytes.NewReader(v.proofBuf))
+
+	newVk := groth16.NewVerifyingKey(ecc.BN254)
+	newVk.ReadFrom(bytes.NewReader(v.vkBuf))
+
+	newPublicWitness, _ := witness.New(ecc.BN254.ScalarField()) //
+	newPublicWitness.UnmarshalBinary(v.publicWitnessBuff)
+
+	err := groth16.Verify(newProof, newVk, newPublicWitness)
+	if err != nil {
+		panic(err)
+	}
+	return true
 }
